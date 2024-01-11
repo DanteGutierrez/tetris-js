@@ -6,6 +6,8 @@ let board;
 
 let running = false;
 
+let timer;
+
 let currentPiece = 
 {
     tetrimino: "T",
@@ -15,6 +17,10 @@ let currentPiece =
     deltaX: 0,
     deltaY: 0,
 };
+
+let holdPiece = "T";
+
+let bag;
 
 const tetriminos = 
 {
@@ -39,7 +45,7 @@ const tetriminos =
     {
         shape:
         [
-            ["", "", "", "block"]
+            ["", "", "", "block"],
             ["block", "block", "block", "block"]
         ],
         color: "orange"
@@ -48,7 +54,7 @@ const tetriminos =
     {
         shape:
         [
-            ["block", "block"]
+            ["block", "block"],
             ["block", "block"]
         ],
         color: "yellow"
@@ -84,9 +90,64 @@ const tetriminos =
 
 const gameButton = document.getElementById("gameButton");
 
-const updateButton = document.getElementById("updateButton");
+const leftButton = document.getElementById("leftButton");
+
+const rightButton = document.getElementById("rightButton");
 
 const gameBody = document.getElementById("gameBody");
+
+// Function courtesy from: https://stackoverflow.com/a/2450976
+function shuffle(array) {
+    let currentIndex = array.length,  randomIndex;
+  
+    // While there remain elements to shuffle.
+    while (currentIndex > 0) {
+  
+      // Pick a remaining element.
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+  
+      // And swap it with the current element.
+      [array[currentIndex], array[randomIndex]] = [
+        array[randomIndex], array[currentIndex]];
+    }
+  
+    return array;
+}
+
+const refillBag = () => 
+{
+    bag = [];
+
+    for(let key in tetriminos)
+    {
+        bag.push(key);
+    }
+
+    shuffle(bag);
+}
+
+const pickNewPiece = () => 
+{
+    currentPiece.tetrimino = holdPiece;
+
+    holdPiece = bag.pop();
+
+    if(bag.length == 0)
+    {
+        refillBag();
+    }
+
+    currentPiece.rotation = 0;
+    
+    currentPiece.x = width / 2;
+
+    currentPiece.y = 0;
+
+    currentPiece.deltaX = 0;
+
+    currentPiece.deltaY = 0;
+}
 
 const generateBoard = () => 
 {
@@ -121,34 +182,30 @@ const generateBoard = () =>
     updateGame();
 }
 
-const changeGameState = (evt) =>
+const prepareGame = () => 
 {
-    running = !running;
-    gameButton.innerText = running ? "Stop Game" : "Start Game";
+    refillBag();
 
-    if(running) 
-    {
-        updateButton.disabled = false;
+    holdPiece = bag.pop();
 
-        generateBoard();
-    }
-    else
-    {
-        updateButton.disabled = true;
-    }
+    pickNewPiece();
+
+    generateBoard();
+
+    timer = setInterval(() => {currentPiece.deltaY++; updateGame()}, 500);
 }
 
 const updateGame = () =>
 {
     movePiece();
-
+    
     renderFrame();
 }
 
 const TogglePieceVisibility = on => 
 {
     let currentTetrimino = tetriminos[currentPiece.tetrimino];
-
+    
     for(let i = 0; i < currentTetrimino.shape.length; i++)
     {
         for(let j = 0; j < currentTetrimino.shape[i].length; j++)
@@ -164,55 +221,48 @@ const TogglePieceVisibility = on =>
 const movePiece = () =>
 {
     // De-render piece
-
+    
     let currentTetrimino = tetriminos[currentPiece.tetrimino];
     
     // SRS
-
+    
     // Always round to left
     
-    let overlap = false;
-
-    // boundary check
+    let locked = false;
     
-    for(let i = (currentPiece.x - Math.ceil(currentTetrimino.shape[0].length)); i < (currentPiece.x + Math.floor(currentTetrimino.shape[0].length)); i++)
+    // boundary check
+    for(let i = 0; i < currentTetrimino.shape[0].length; i++)
     {
-        if(currentPiece.y + currentTetrimino.shape.length >= height || board[currentPiece.y + currentTetrimino.shape.length][i] !== "black")
+        if(currentPiece.y + currentTetrimino.shape.length >= height || (currentTetrimino.shape[currentTetrimino.shape.length - 1][i] !== "" && board[currentPiece.y + currentTetrimino.shape.length][currentPiece.x - Math.ceil(currentTetrimino.shape[0].length / 2) + i] !== "black"))
         {
-            overlap = true;
-
-            console.log("overlap")
-
+            locked = true;
+            
             break;
         }
-    }    
-
-    if(overlap)
-    {
-        currentPiece.rotation = 0;
-        
-        currentPiece.x = width / 2;
-
-        currentPiece.y = 0;
-
-        currentTetrimino = tetriminos[currentPiece.tetrimino];
     }
-
+    
+    if(locked)
+    {
+        pickNewPiece();
+        
+        currentTetrimino = tetriminos[currentPiece.tetrimino];
+    }  
+    
     else
     {
         TogglePieceVisibility(false);
-
+        
         currentPiece.x += currentPiece.deltaX;
-
+        
         currentPiece.deltaX = 0;
-
+        
         currentPiece.y += currentPiece.deltaY;
-
+        
         currentPiece.deltaY = 0;
     }
-
+    
     // re-render piece
-
+    
     TogglePieceVisibility(true);
 }
 
@@ -223,12 +273,12 @@ const renderFrame = () =>
         for(let j = 0; j < board[i].length; j++)
         {
             let div = document.getElementById(i + '' + j);
-
+            
             if(board[i][j] !== div.className)
             {
                 div.className = board[i][j];
             }
-
+            
             else
             {
                 div.className = board[i][j];
@@ -237,9 +287,25 @@ const renderFrame = () =>
     }
 }
 
+const changeGameState = (evt) =>
+{
+    running = !running;
+
+    gameButton.innerText = running ? "Stop Game" : "Start Game";
+
+    if(running) 
+    {
+        prepareGame();
+    }
+    else
+    {
+        clearInterval(timer);
+    }
+}
+
 gameButton.addEventListener("click", changeGameState);
 
-updateButton.addEventListener("click", updateGame);
+leftButton.addEventListener("click", evt => {currentPiece.deltaX--; updateGame();})
 
-updateButton.disabled = true;
+rightButton.addEventListener("click", evt => {currentPiece.deltaX++; updateGame();})
 
