@@ -1,0 +1,103 @@
+html
+{
+    height:100vh;
+    width: 100vw;
+}
+
+body
+{    
+    margin: 0;
+    height: 100%;
+    width: 100%;
+}
+
+.container 
+{
+    display: flex;
+}
+
+.item
+{
+    margin: 5px;
+}
+
+.horizontal
+{
+    flex-direction: row;
+}
+
+.vertical
+{
+    flex-direction: column;
+}
+
+.centerAxis
+{
+    justify-content: center;
+}
+
+.centerCounteraxis
+{
+    align-items: center;
+}
+
+.blue
+{
+    --block-color: rgb(58, 134, 255);
+}
+
+.lightBlue
+{
+    --block-color: rgb(124, 181, 248);
+}
+
+.red
+{
+    --block-color: rgb(214, 40, 40);
+}
+
+.green
+{
+    --block-color: rgb(124, 181, 248);
+}
+
+.orange
+{
+    --block-color: rgb(251, 86, 7);
+}
+
+.yellow
+{
+    --block-color: rgb(255, 190, 11);
+}
+
+.purple
+{
+    --block-color: rgb(131, 56, 236);
+}
+
+.gray
+{
+    --block-color: gray;
+}
+
+.black
+{
+    height: 30px;
+    width: 30px;
+    background-color: rgb(50,50,50);
+}
+
+.block
+{
+    height: 30px;
+    width: 30px;
+    background-color: var(--block-color);
+    border-style: solid;
+    border-width: 5px;
+    border-top-color: rgba(255,255,255,0.5);
+    border-left-color: rgba(0,0,0,0.25);
+    border-right-color: rgba(0,0,0,0.25);
+    border-bottom-color: rgba(0,0,0,0.5);
+    box-sizing: border-box;
+}
