@@ -8,8 +8,16 @@
         <h1 class="item">Tetris</h1>
         <a class="item" href="./index.html">Go home</a>
         <button id="gameButton" class="item" type="button">Start Game</button>
-        <button id="leftButton" class="item" type="button">Left</button>
-        <button id="rightButton" class="item" type="button">Right</button>
+        <div class="container horizontal">
+            <div class="container vertical">
+                <button id="leftButton" class="item" type="button">Left</button>
+                <button id="rightButton" class="item" type="button">Right</button>
+            </div>
+            <div class="container vertical">
+                <button id="leftRotButton" class="item" type="button">Left Rotation</button>
+                <button id="rightRotButton" class="item" type="button">Right Rotation</button>
+            </div>
+        </div>
         <div id="gameBody"></div>
         <script src="script.js"></script>
     </body>

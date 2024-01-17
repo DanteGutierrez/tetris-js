@@ -10,15 +10,17 @@ let timer;
 
 let currentPiece = 
 {
-    tetrimino: "T",
+    tetrimino: "",
+    currentState: [],
     rotation: 0,
     y: 0,
     x: width / 2,
     deltaX: 0,
     deltaY: 0,
+    deltaRotation: 0,
 };
 
-let holdPiece = "T";
+let holdPiece = "";
 
 let bag;
 
@@ -28,7 +30,10 @@ const tetriminos =
     {
         shape:
         [
-            ["block", "block", "block", "block"]
+            ["","","",""],
+            ["block", "block", "block", "block"],
+            ["","","",""],
+            ["","","",""]
         ],
         color: "lightBlue"
     },
@@ -36,8 +41,9 @@ const tetriminos =
     {
         shape:
         [
-            ["block", "", "", ""],
-            ["block", "block", "block", "block"]
+            ["block", "", ""],
+            ["block", "block", "block"],
+            ["","",""]
         ],
         color: "blue"
     },
@@ -45,8 +51,9 @@ const tetriminos =
     {
         shape:
         [
-            ["", "", "", "block"],
-            ["block", "block", "block", "block"]
+            ["", "", "block"],
+            ["block", "block", "block"],
+            ["","",""]
         ],
         color: "orange"
     },
@@ -64,7 +71,8 @@ const tetriminos =
         shape:
         [
             ["", "block", "block"],
-            ["block", "block", ""]
+            ["block", "block", ""],
+            ["","",""]
         ],
         color: "green"
     },
@@ -73,7 +81,8 @@ const tetriminos =
         shape:
         [
             ["block", "block", ""],
-            ["", "block", "block"]
+            ["", "block", "block"],
+            ["","",""]
         ],
         color: "red"
     },
@@ -82,7 +91,8 @@ const tetriminos =
         shape:
         [
             ["", "block", ""],
-            ["block", "block", "block"]
+            ["block", "block", "block"],
+            ["","",""]
         ],
         color: "purple"
     }
@@ -93,6 +103,10 @@ const gameButton = document.getElementById("gameButton");
 const leftButton = document.getElementById("leftButton");
 
 const rightButton = document.getElementById("rightButton");
+
+const leftRotButton = document.getElementById("leftRotButton");
+
+const rightRotButton = document.getElementById("rightRotButton");
 
 const gameBody = document.getElementById("gameBody");
 
@@ -138,6 +152,8 @@ const pickNewPiece = () =>
         refillBag();
     }
 
+    currentPiece.currentState = tetriminos[currentPiece.tetrimino].shape;
+
     currentPiece.rotation = 0;
     
     currentPiece.x = width / 2;
@@ -147,6 +163,10 @@ const pickNewPiece = () =>
     currentPiece.deltaX = 0;
 
     currentPiece.deltaY = 0;
+
+    currentPiece.deltaRotation = 0;
+
+    console.log(currentPiece);
 }
 
 const generateBoard = () => 
@@ -203,18 +223,74 @@ const updateGame = () =>
 }
 
 const TogglePieceVisibility = on => 
-{
-    let currentTetrimino = tetriminos[currentPiece.tetrimino];
-    
-    for(let i = 0; i < currentTetrimino.shape.length; i++)
+{    
+    for(let i = 0; i < currentPiece.currentState.length; i++)
     {
-        for(let j = 0; j < currentTetrimino.shape[i].length; j++)
+        for(let j = 0; j < currentPiece.currentState[i].length; j++)
         {
-            if(currentTetrimino.shape[i][j] !== "")
+            if(currentPiece.currentState[i][j] !== "")
             {
-                board[currentPiece.y + i][currentPiece.x - Math.ceil(currentTetrimino.shape[i].length / 2) + j] = on ? currentTetrimino.shape[i][j] + " " + currentTetrimino.color : "black";
+                board[currentPiece.y + i][currentPiece.x - Math.ceil(currentPiece.currentState[i].length / 2) + j] = on ? currentPiece.currentState[i][j] + " " + tetriminos[currentPiece.tetrimino].color : "black";
             }
         }
+    }
+}
+
+// Left: boolean for clockwise / counterclockwise
+// true: counterclockwise | false: clockwise
+const RotateCurrentPiece = left =>
+{
+    let tempArray = [];
+
+    for(let i = 0; i < currentPiece.currentState[0].length; i++)
+    {
+        let row = [];
+
+        for(let j = 0; j < currentPiece.currentState.length; j++)
+        {
+            row.push("");
+        }
+
+        tempArray.push(row);
+    }
+
+    if(left)
+    {
+        
+
+        for(let y = 0; y < currentPiece.currentState.length; y++)
+        {
+            for(let x = 0; x < currentPiece.currentState[y].length; x++)
+            {
+                tempArray[tempArray.length - 1 - x][y] = currentPiece.currentState[y][x];
+            }
+        }
+    }
+    else
+    {
+        for(let y = 0; y < currentPiece.currentState.length; y++)
+        {
+            for(let x = 0; x < currentPiece.currentState[y].length; x++)
+            {
+                tempArray[x][tempArray[x].length - 1 - y] = currentPiece.currentState[y][x];
+            }
+        }
+    }
+
+    currentPiece.currentState = tempArray;
+}
+
+// Direction: The way the piece is moving (Delta)
+// -1: Left | 0: Down | 1: Right
+const checkCollision = direction =>
+{
+    let currentTetrimino = tetriminos[currentPiece.tetrimino];
+
+    let profile = [];
+
+    if(direction === 0)
+    {
+        
     }
 }
 
@@ -231,6 +307,7 @@ const movePiece = () =>
     let locked = false;
     
     // boundary check
+
     for(let i = 0; i < currentTetrimino.shape[0].length; i++)
     {
         if(currentPiece.y + currentTetrimino.shape.length >= height || (currentTetrimino.shape[currentTetrimino.shape.length - 1][i] !== "" && board[currentPiece.y + currentTetrimino.shape.length][currentPiece.x - Math.ceil(currentTetrimino.shape[0].length / 2) + i] !== "black"))
@@ -259,6 +336,10 @@ const movePiece = () =>
         currentPiece.y += currentPiece.deltaY;
         
         currentPiece.deltaY = 0;
+
+        if(currentPiece.deltaRotation != 0) RotateCurrentPiece(currentPiece.deltaRotation > 0);
+
+        currentPiece.deltaRotation = 0;
     }
     
     // re-render piece
@@ -309,3 +390,6 @@ leftButton.addEventListener("click", evt => {currentPiece.deltaX--; updateGame()
 
 rightButton.addEventListener("click", evt => {currentPiece.deltaX++; updateGame();})
 
+leftRotButton.addEventListener("click", evt => {currentPiece.deltaRotation++; updateGame();})
+
+rightRotButton.addEventListener("click", evt => {currentPiece.deltaRotation--; updateGame();})
